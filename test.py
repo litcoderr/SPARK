@@ -11,9 +11,14 @@ from accelerate import init_empty_weights, infer_auto_device_map, load_checkpoin
 from torch.utils.data import DataLoader
 from eval.create_evaluator import Evaluator
 from torchvision.transforms.functional import pil_to_tensor
-from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration
+from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration, BlipProcessor, BlipForConditionalGeneration
 from utils.utils import *
 from datasets import load_dataset
+
+
+def load_custom_dataset(parquet_path):
+    dataset = load_dataset("parquet", data_files=parquet_path)
+    return dataset["train"]
 
    
 def test(args):
@@ -43,11 +48,22 @@ def test(args):
         model = AutoModel.from_pretrained(ckpt_path, torch_dtype=torch.bfloat16, trust_remote_code=True).cuda()
         model.tokenizer = tokenizer
         model = model.eval()
+    elif args.model == "blip2":
+        model_id = "Salesforce/blip2-flan-t5-xl"  # BLIP-2 model ID
+        model = BlipForConditionalGeneration.from_pretrained(
+            model_id,
+            torch_dtype=torch.float16,
+            low_cpu_mem_usage=True
+        ).cuda()
+        processor = BlipProcessor.from_pretrained(model_id)
 
     model.eval()
 
     # Initialize dataset & evaluator
-    test_dataset = load_dataset("topyun/SPARK", split="train", cache_dir=args.dataset_dir)
+    # test_dataset = load_dataset("topyun/SPARK", split="train", cache_dir=args.dataset_dir)
+    dataset_root = Path(os.path.dirname(os.path.abspath(__file__))) / "dataset"
+    custom_dataset_path = dataset_root / "spark2.parquet"
+    test_dataset = load_custom_dataset(custom_dataset_path)
     evaluator = Evaluator(root=args.dataset_dir)
 
 
@@ -115,6 +131,17 @@ def test(args):
                 with torch.autocast(device_type='cuda', dtype=torch.float16):
                     response, his = model.chat(tokenizer, query, image, do_sample=False, num_beams=3, use_meta=True)
                 all_predictions.append(response)
+        elif args.model == "blip2":
+            all_predictions = []
+            for x in inputs:
+                question = x['question_query']
+                raw_image = x['image']
+
+                # Prepare inputs for BLIP-2
+                inputs = processor(images=raw_image, text=question, return_tensors="pt").to("cuda").to(torch.float16)
+                output = model.generate(**inputs, max_new_tokens=64, do_sample=False)
+                answer = processor.decode(output[0], skip_special_tokens=True)
+                all_predictions.append(answer)
             
         for x in inputs: del x['image']
         evaluator.process(inputs, all_predictions)
