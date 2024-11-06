@@ -11,7 +11,7 @@ from accelerate import init_empty_weights, infer_auto_device_map, load_checkpoin
 from torch.utils.data import DataLoader
 from eval.create_evaluator import Evaluator
 from torchvision.transforms.functional import pil_to_tensor
-from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration, BlipProcessor, BlipForConditionalGeneration
+from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration, Blip2Processor, BlipForConditionalGeneration
 from utils.utils import *
 from datasets import load_dataset
 from pathlib import Path
@@ -56,7 +56,7 @@ def test(args):
             torch_dtype=torch.float16,
             low_cpu_mem_usage=True
         ).cuda()
-        processor = BlipProcessor.from_pretrained(model_id)
+        processor = Blip2Processor.from_pretrained(model_id)
 
     model.eval()
 
