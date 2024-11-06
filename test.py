@@ -61,11 +61,10 @@ def test(args):
 
     # Initialize dataset & evaluator
     # test_dataset = load_dataset("topyun/SPARK", split="train", cache_dir=args.dataset_dir)
-    dataset_root = Path(os.path.dirname(os.path.abspath(__file__))) / "dataset"
+    dataset_root = Path("/content/drive/MyDrive/backup")
     custom_dataset_path = dataset_root / "spark2.parquet"
     test_dataset = load_custom_dataset(custom_dataset_path)
     evaluator = Evaluator(root=args.dataset_dir)
-
 
     # Update dataset & evaluator
     evaluator.reset()
