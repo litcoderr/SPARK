@@ -11,7 +11,7 @@ from accelerate import init_empty_weights, infer_auto_device_map, load_checkpoin
 from torch.utils.data import DataLoader
 from eval.create_evaluator import Evaluator
 from torchvision.transforms.functional import pil_to_tensor
-from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration, Blip2Processor, BlipForConditionalGeneration
+from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration, Blip2Processor, Blip2ForConditionalGeneration
 from utils.utils import *
 from datasets import load_dataset
 from pathlib import Path
@@ -51,7 +51,7 @@ def test(args):
         model = model.eval()
     elif args.model == "blip2":
         model_id = "Salesforce/blip2-flan-t5-xl"  # BLIP-2 model ID
-        model = BlipForConditionalGeneration.from_pretrained(
+        model = Blip2ForConditionalGeneration.from_pretrained(
             model_id,
             torch_dtype=torch.float16,
             low_cpu_mem_usage=True,
@@ -141,8 +141,7 @@ def test(args):
                 output = model.generate(**inputs)
                 answer = processor.decode(output[0], skip_special_tokens=True)
                 all_predictions.append(answer)
-            
-        for x in inputs: del x['image']
+
         evaluator.process(inputs, all_predictions)
 
         # garbage collection
