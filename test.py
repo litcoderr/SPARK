@@ -137,8 +137,8 @@ def test(args):
                 raw_image = x['image']
 
                 # Prepare inputs for BLIP-2
-                inputs = processor(images=raw_image, text=question, return_tensors="pt").to("cuda").to(torch.float16)
-                output = model.generate(**inputs)
+                inputs_ = processor(images=raw_image, text=question, return_tensors="pt").to("cuda").to(torch.float16)
+                output = model.generate(**inputs_)
                 answer = processor.decode(output[0], skip_special_tokens=True)
                 all_predictions.append(answer)
 
