@@ -16,3 +16,11 @@ export LD_LIBRARY_PATH="/usr/lib64-nvidia"
 
 pip install datasets
 pip install decord
+
+cd ~/
+git clone https://github.com/DAMO-NLP-SG/VideoLLaMA2
+cd VideoLLaMA2
+pip install -r requirements.txt
+pip install --upgrade pip
+pip install -e .
+pip install flash-attn==2.5.8 --no-build-isolation
