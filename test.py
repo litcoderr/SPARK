@@ -146,6 +146,8 @@ def test(args):
 
         # garbage collection
         torch.cuda.empty_cache()
+        # TODO erase
+        break
     
     print(f"[Device: {accel.device}] Finished!")
     accel.wait_for_everyone()
