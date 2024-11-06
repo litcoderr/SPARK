@@ -1,8 +1,16 @@
+import sys
+sys.path.append('/root/VideoLLaMA2')
+from videollama2 import model_init, mm_infer
+from videollama2.utils import disable_torch_init
+from videollama2.mm_utils import expand2square
+
 import os
 import gc
 import torch
 import argparse
 import base64
+import numpy as np
+
 from config import *
 from PIL import Image
 from tqdm import tqdm
@@ -57,6 +65,14 @@ def test(args):
             low_cpu_mem_usage=True,
         ).cuda()
         processor = Blip2Processor.from_pretrained(model_id)
+    elif args.model == "videollama2":
+        disable_torch_init()
+        modal = 'image'
+        model_path = 'DAMO-NLP-SG/VideoLLaMA2.1-7B-16F'
+        model, processor, tokenizer = model_init(model_path)
+        model = model.to('cuda')
+        model = model.eval()
+
 
     model.eval()
 
@@ -141,6 +157,15 @@ def test(args):
                 output = model.generate(**inputs_)
                 answer = processor.decode(output[0], skip_special_tokens=True)
                 all_predictions.append(answer)
+        elif args.model == "videollama2":
+            all_predictions = []
+            for x in inputs:
+                question = x['question_query']
+                raw_image = np.array(x['image'])
+
+                output = mm_infer(processor[modal](raw_image), question, model=model, tokenizer=tokenizer, do_sample=False, modal=modal)
+                print(output)
+                return
 
         evaluator.process(inputs, all_predictions)
 
