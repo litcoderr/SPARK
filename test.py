@@ -54,7 +54,7 @@ def test(args):
         model = BlipForConditionalGeneration.from_pretrained(
             model_id,
             torch_dtype=torch.float16,
-            low_cpu_mem_usage=True
+            low_cpu_mem_usage=True,
         ).cuda()
         processor = Blip2Processor.from_pretrained(model_id)
 
@@ -138,7 +138,7 @@ def test(args):
 
                 # Prepare inputs for BLIP-2
                 inputs = processor(images=raw_image, text=question, return_tensors="pt").to("cuda").to(torch.float16)
-                output = model.generate(**inputs, max_new_tokens=64, do_sample=False)
+                output = model.generate(**inputs)
                 answer = processor.decode(output[0], skip_special_tokens=True)
                 all_predictions.append(answer)
             
