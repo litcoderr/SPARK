@@ -14,6 +14,5 @@ export LD_LIBRARY_PATH="/usr/lib64-nvidia"
 # conda init --all --dry-run --force
 # rm $ANACONDA_VERSION
 
-pip install flash-attn --no-build-isolation
 pip install datasets
 pip install decord
