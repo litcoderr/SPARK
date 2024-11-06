@@ -164,15 +164,12 @@ def test(args):
                 raw_image = np.array(x['image'])
 
                 output = mm_infer(processor[modal](raw_image), question, model=model, tokenizer=tokenizer, do_sample=False, modal=modal)
-                print(output)
-                return
+                all_predictions.append(output)
 
         evaluator.process(inputs, all_predictions)
 
         # garbage collection
         torch.cuda.empty_cache()
-        # TODO erase
-        break
     
     print(f"[Device: {accel.device}] Finished!")
     accel.wait_for_everyone()
