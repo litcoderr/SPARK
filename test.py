@@ -14,6 +14,7 @@ from torchvision.transforms.functional import pil_to_tensor
 from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration, BlipProcessor, BlipForConditionalGeneration
 from utils.utils import *
 from datasets import load_dataset
+from pathlib import Path
 
 
 def load_custom_dataset(parquet_path):
