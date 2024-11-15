@@ -19,7 +19,7 @@ from accelerate import init_empty_weights, infer_auto_device_map, load_checkpoin
 from torch.utils.data import DataLoader
 from eval.create_evaluator import Evaluator
 from torchvision.transforms.functional import pil_to_tensor
-from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration, Blip2Processor, Blip2ForConditionalGeneration
+from transformers import AutoProcessor, AutoModel, AutoTokenizer, LlavaForConditionalGeneration, Blip2Processor, Blip2ForConditionalGeneration, InstructBlipProcessor, InstructBlipForConditionalGeneration
 from utils.utils import *
 from datasets import load_dataset
 from pathlib import Path
@@ -72,7 +72,11 @@ def test(args):
         model, processor, tokenizer = model_init(model_path)
         model = model.to('cuda')
         model = model.eval()
-
+    elif args.model == 'instructblip':
+        model = InstructBlipForConditionalGeneration.from_pretrained("Salesforce/instructblip-vicuna-7b")
+        processor = InstructBlipProcessor.from_pretrained("Salesforce/instructblip-vicuna-7b")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model.to(device)
 
     model.eval()
 
@@ -165,11 +169,31 @@ def test(args):
 
                 output = mm_infer(processor[modal](raw_image), question, model=model, tokenizer=tokenizer, do_sample=False, modal=modal)
                 all_predictions.append(output)
+        elif args.model == 'instructblip':
+            all_predictions = []
+            for x in inputs:
+                inputs_ = processor(images=x['image'], text=x['question_query'], return_tensors="pt").to(device)
+                outputs = model.generate(
+                    **inputs_,
+                    do_sample=False,
+                    num_beams=5,
+                    max_length=256,
+                    min_length=1,
+                    top_p=0.9,
+                    repetition_penalty=1.5,
+                    length_penalty=1.0,
+                    temperature=1,
+                )
+                answer = processor.batch_decode(outputs, skip_special_tokens=True)[0]
+                print(answer)
+                all_predictions.append(answer) 
+            break #TODO
 
         evaluator.process(inputs, all_predictions)
 
         # garbage collection
         torch.cuda.empty_cache()
+        break #TODO
     
     print(f"[Device: {accel.device}] Finished!")
     accel.wait_for_everyone()
