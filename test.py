@@ -185,15 +185,12 @@ def test(args):
                     temperature=1,
                 )
                 answer = processor.batch_decode(outputs, skip_special_tokens=True)[0]
-                print(answer)
                 all_predictions.append(answer) 
-            break #TODO
 
         evaluator.process(inputs, all_predictions)
 
         # garbage collection
         torch.cuda.empty_cache()
-        break #TODO
     
     print(f"[Device: {accel.device}] Finished!")
     accel.wait_for_everyone()
