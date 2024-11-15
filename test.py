@@ -58,7 +58,7 @@ def test(args):
         model.tokenizer = tokenizer
         model = model.eval()
     elif args.model == "blip2":
-        model_id = "Salesforce/blip2-flan-t5-xl"  # BLIP-2 model ID
+        model_id = "Salesforce/blip2-opt-6.7b"  # BLIP-2 model ID
         model = Blip2ForConditionalGeneration.from_pretrained(
             model_id,
             torch_dtype=torch.float16,
@@ -154,7 +154,7 @@ def test(args):
 
                 # Prepare inputs for BLIP-2
                 inputs_ = processor(images=raw_image, text=question, return_tensors="pt").to("cuda").to(torch.float16)
-                output = model.generate(**inputs_)
+                output = model.generate(**inputs_, max_new_tokens=1024)
                 answer = processor.decode(output[0], skip_special_tokens=True)
                 all_predictions.append(answer)
         elif args.model == "videollama2":
